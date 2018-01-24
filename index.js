@@ -6,18 +6,18 @@ const request = require('request'),
 // Parameters for the QueryBuilder
 const
     action = 'query',
-    apiEndpoint = 'allimages',
+    apiEndpoint = 'allpages',
     baseUrl = 'http://metin2wiki.de',
-    continueEndpoint = 'aicontinue',
+    continueEndpoint = 'apcontinue',
     format = 'json',
-    limitEndpoint = 'ailimit',
+    limitEndpoint = 'aplimit',
     rateLimit = '500',
-    resultFile = 'images.txt'
+    resultFile = 'title.txt'
 ;
 
 // Which parts of the response should be parsed
 const partsToSave = [
-    'url'
+    'title'
 ];
 
 
@@ -30,17 +30,20 @@ function crawl(pageToContinue = '') {
         request(wikiurl, (err, response, body) => {
             response = JSON.parse(body);
             let pages = response[action][apiEndpoint];
+            let lastPage = false;
 
             if(response['query-continue']) {
                 pageToContinue = getContinueParameter(response);
             } else {
-                console.log('finished')
-                return false;
+                lastPage = true;
+                console.log('finished');
             }
 
             saveToFile(pages).then(() => {
-                if(pageToContinue !== '') {
+                if(pageToContinue !== '' && !lastPage) {
                     crawl(pageToContinue);
+                } else {
+                    return false;
                 }
             });
         })
